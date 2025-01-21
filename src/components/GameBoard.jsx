@@ -6,16 +6,43 @@ const initialGameBoard = [
   [null, null, null],
 ];
 
-function GameBoard() {
+function GameBoard({ players, onPlayerSwitch, setWinner }) {
   const [gameBoard, setGameBoard] = useState(initialGameBoard);
 
+  function checkWinner(board, currentSymbol) {
+    // Check rows, columns, and diagonals
+    const winPatterns = [
+      // Rows
+      ...board,
+      // Columns
+      [board[0][0], board[1][0], board[2][0]],
+      [board[0][1], board[1][1], board[2][1]],
+      [board[0][2], board[1][2], board[2][2]],
+      // Diagonals
+      [board[0][0], board[1][1], board[2][2]],
+      [board[0][2], board[1][1], board[2][0]],
+    ];
+    return winPatterns.some((line) =>
+      line.every((cell) => cell === currentSymbol)
+    );
+  }
+
   function handleSelectSquare(rowIndex, colIndex) {
+    const currentPlayer = players.find((player) => player.active);
+    if (gameBoard[rowIndex][colIndex] || !currentPlayer) return;
+
     setGameBoard((prevGameBoard) => {
-      // Create a deep copy of the game board
       const updatedBoard = prevGameBoard.map((row) => [...row]);
-      updatedBoard[rowIndex][colIndex] = "X";
+      updatedBoard[rowIndex][colIndex] = currentPlayer.symbol;
+
+      // Check for a winner
+      if (checkWinner(updatedBoard, currentPlayer.symbol)) {
+        setWinner(currentPlayer.name);
+      }
       return updatedBoard;
     });
+
+    onPlayerSwitch(rowIndex, colIndex, currentPlayer.symbol);
   }
 
   return (
